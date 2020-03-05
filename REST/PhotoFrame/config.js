@@ -32,7 +32,7 @@ config.port = 8080;
 // The scopes to request. The app requires the photoslibrary.readonly and
 // plus.me scopes.
 config.scopes = [
-  'https://www.googleapis.com/auth/photoslibrary.readonly',
+  'https://www.googleapis.com/auth/photoslibrary',
   'profile',
 ];
 
