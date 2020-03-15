@@ -3,3 +3,4 @@ trips
 node_modules
 sessions
 presist-*
+secrets.js

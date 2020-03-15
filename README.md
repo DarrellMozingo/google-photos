@@ -18,13 +18,17 @@ Before you can run this sample, you must set up a Google Developers project and 
 [get started guide](https://developers.google.com/photos/library/guides/get-started) to complete these steps:
 1. Set up a Google Developers Project and enable the **Google Photos Library API**.
 1. In your project, set up new OAuth credentials for a web server application. Set the authorized JavaScript origin to `http://127.0.0.1` and the authorized redirect URL to `http://127.0.0.1:8080/auth/google/callback` if you are running the app locally.
-1. The console will display your authentication credentials. Add the `Client ID` and `Client secret` to the file `config.js`, replacing the placeholder values:
+1. The console will display your authentication credentials. Add the `Client ID` and `Client secret` to the file `secrets.js`:
 ```
+const secrets = {};
+
 // The OAuth client ID from the Google Developers console.
-config.oAuthClientID = 'ADD YOUR CLIENT ID';
+secrets.oAuthClientID = 'ADD YOUR CLIENT ID';
 
 // The OAuth client secret from the Google Developers console.
-config.oAuthclientSecret = 'ADD YOUR CLIENT SECRET';
+secrets.oAuthclientSecret = 'ADD YOUR CLIENT SECRET';
+
+module.exports = secrets
 ```
 
 You are now ready to run the sample:
