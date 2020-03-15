@@ -28,6 +28,7 @@ const session = require('express-session');
 const sessionFileStore = require('session-file-store');
 const uuid = require('uuid');
 const winston = require('winston');
+const fs = require('fs');
 
 const app = express();
 const fileStore = sessionFileStore(session);
@@ -300,6 +301,62 @@ app.post('/loadFromAlbum', async (req, res) => {
   returnPhotos(res, userId, data, parameters)
 });
 
+app.get('/upload', async (req, res) => {
+  if (!req.user || !req.isAuthenticated()) {
+    res.redirect('/');
+    return;
+  }
+
+  const dryRun = false;
+
+  logger.info(`Starting crawl & upload, with dryRun: ${dryRun}`);
+  await crawlTrips(dryRun, req.user.token);
+  logger.info("done!");
+
+  res.status(200).send({result:"check logs - done?"});
+});
+
+async function crawlTrips(dryRun, token) {
+  const dir = await fs.promises.opendir('trips');
+
+  for await (const dirent of dir) {
+    if (dirent.name === ".DS_Store") { continue; }
+
+    const album = dirent.name;
+    logger.info(`Creating album: '${album}'`)
+    const albumId = dryRun ? "" : await createAlbum(token, album);
+
+    await crawlSingleTrip(dryRun, token, album, albumId);
+  }
+}
+
+async function crawlSingleTrip(dryRun, token, album, albumId) {
+  const albumPath = `trips/${album}`;
+  const dir = await fs.promises.opendir(albumPath);
+  const mediaItems = [];
+
+  for await (const dirent of dir) {
+    if (dirent.name === ".DS_Store") { continue; }
+
+    const photo = dirent.name;
+    logger.info(`>>  Uploading into '${album}': ${photo}`)
+
+    const mediaItem = {
+      simpleMediaItem: {
+        fileName: photo,
+        uploadToken: dryRun ? `token-for-${photo}` : await uploadPhoto(token, `${albumPath}/${photo}`)
+      }
+    }
+
+    mediaItems.push(mediaItem);
+  }
+
+  logger.info(`> Creating media in '${album}' (${mediaItems.length}):\n${JSON.stringify(mediaItems)}`);
+  if (!dryRun) {
+    const createResponse = await batchCreate(token, mediaItems, albumId);
+  }
+}
+
 // Returns all albums owned by the user.
 app.get('/getAlbums', async (req, res) => {
   logger.info('Loading albums');
@@ -505,6 +562,43 @@ async function libraryApiSearch(authToken, parameters) {
 
   logger.info('Search complete.');
   return {photos, parameters, error};
+}
+
+async function uploadPhoto(authToken, filename) {
+  const uploadToken = await request.post(config.apiEndpoint + '/v1/uploads', {
+    auth: {'bearer': authToken},
+    headers: {'Content-Type': 'application/octet-stream'},
+    headers: {'X-Goog-Upload-Content-Type': 'image/jpeg'},
+    headers: {'X-Goog-Upload-Protocol': 'raw'},
+    body: fs.createReadStream(filename)
+  });
+
+  return uploadToken;
+}
+
+async function batchCreate(authToken, mediaItems, albumId) {
+  const response = await request.post(config.apiEndpoint + '/v1/mediaItems:batchCreate', {
+    auth: {'bearer': authToken},
+    json: {
+      albumId: albumId,
+      newMediaItems: mediaItems
+    }
+  });
+
+  logger.info(`batchCreate response: ${JSON.stringify(response)}`)
+
+  return response;
+}
+
+async function createAlbum(authToken, albumName) {
+  const response = await request.post(config.apiEndpoint + '/v1/albums', {
+    auth: {'bearer': authToken},
+    json: { album: { title: albumName } }
+  });
+
+  logger.info(`album create response: ${JSON.stringify(response)}`);
+
+  return response.id;
 }
 
 // Returns a list of all albums owner by the logged in user from the Library
