@@ -124,7 +124,8 @@ if (process.env.DEBUG) {
   require('request-promise').debug = true;
 } else {
   // By default, only print all 'verbose' log level messages or below.
-  logger.level = 'verbose';
+  //logger.level = 'verbose';
+  logger.level = 'info';
 }
 
 
@@ -573,6 +574,8 @@ async function uploadPhoto(authToken, filename) {
     body: fs.createReadStream(filename)
   });
 
+  logger.verbose(`upload response: ${uploadToken}`);
+
   return uploadToken;
 }
 
@@ -585,7 +588,7 @@ async function batchCreate(authToken, mediaItems, albumId) {
     }
   });
 
-  logger.info(`batchCreate response: ${JSON.stringify(response)}`)
+  logger.verbose(`batchCreate response: ${JSON.stringify(response)}`)
 
   return response;
 }
@@ -596,7 +599,7 @@ async function createAlbum(authToken, albumName) {
     json: { album: { title: albumName } }
   });
 
-  logger.info(`album create response: ${JSON.stringify(response)}`);
+  logger.verbose(`album create response: ${JSON.stringify(response)}`);
 
   return response.id;
 }
