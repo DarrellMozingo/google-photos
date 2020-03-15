@@ -351,7 +351,7 @@ async function crawlSingleTrip(dryRun, token, album, albumId) {
     mediaItems.push(mediaItem);
   }
 
-  logger.info(`> Creating media in '${album}' (${mediaItems.length}):\n${JSON.stringify(mediaItems)}`);
+  logger.info(`> Creating ${mediaItems.length} media item(s) in '${album}'`);
   if (!dryRun) {
     const createResponse = await batchCreate(token, mediaItems, albumId);
   }
