@@ -1,8 +1,5 @@
-build:
-	docker build -t photoframe .
+install:
+	npm install
 
-start: stop build
-	docker run -p 8080:8080 -d photoframe
-
-stop:
-	docker ps | grep photoframe | cut -d' ' -f1 | xargs docker kill
+run:
+	nodemon -i sessions app.js
