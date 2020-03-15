@@ -1,2 +1,5 @@
 .DS_Store
-REST/Photoframe/trips/*
+trips
+node_modules
+sessions
+presist-*
