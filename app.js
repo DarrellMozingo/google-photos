@@ -335,15 +335,21 @@ async function crawlTrips(dryRun, token) {
 
 async function crawlSingleTrip(dryRun, token, album, albumId) {
   const albumPath = `trips/${album}`;
+  const donePath = `${albumPath}/_done`;
   const dir = await fs.promises.opendir(albumPath);
   const photos = [];
 
   for await (const dirent of dir) {
-    if (dirent.name === ".DS_Store") { continue; }
+    if (dirent.name === ".DS_Store" || dirent.name === "_done") { continue; }
     photos.push(dirent.name);
   }
 
   photos.sort();
+
+  if (!fs.existsSync(donePath)) {
+    logger.info(`> Making ${donePath}`);
+    fs.mkdirSync(`${donePath}`);
+  }
 
   for (const photo of photos) {
     logger.info(`>>  Uploading into '${album}': ${photo}`)
@@ -358,6 +364,13 @@ async function crawlSingleTrip(dryRun, token, album, albumId) {
     logger.info(`> Creating media item in '${album}': ${photo}`);
     if (!dryRun) {
       await batchCreate(token, [mediaItem], albumId);
+    }
+
+    logger.info(`> Moving ${photo} to ${donePath}`);
+    if (dryRun) {
+      logger.info(`>> rename ${albumPath}/${photo} ${donePath}/${photo}`);
+    } else {
+      fs.renameSync(`${albumPath}/${photo}`, `${donePath}/${photo}`);
     }
   }
 }
