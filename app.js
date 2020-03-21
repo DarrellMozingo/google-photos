@@ -104,6 +104,7 @@ const logger = winston.createLogger({
     winston.format.simple()
   ),
   transports: [
+    new winston.transports.File({ filename: 'combined.log' }),
     consoleTransport
   ]
 });
