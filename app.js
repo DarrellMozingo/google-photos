@@ -101,6 +101,7 @@ const consoleTransport = new winston.transports.Console();
 const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.colorize(),
+    winston.format.timestamp(),
     winston.format.simple()
   ),
   transports: [
