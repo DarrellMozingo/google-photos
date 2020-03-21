@@ -366,9 +366,9 @@ async function crawlSingleTrip(dryRun, token, album, albumId) {
       await batchCreate(token, [mediaItem], albumId);
     }
 
-    logger.info(`> Moving ${photo} to ${donePath}`);
+    logger.info(`>> Moving ${photo} to ${donePath}`);
     if (dryRun) {
-      logger.info(`>> rename ${albumPath}/${photo} ${donePath}/${photo}`);
+      logger.info(`>>> rename ${albumPath}/${photo} ${donePath}/${photo}`);
     } else {
       fs.renameSync(`${albumPath}/${photo}`, `${donePath}/${photo}`);
     }
