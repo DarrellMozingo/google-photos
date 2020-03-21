@@ -322,12 +322,29 @@ app.get('/upload', async (req, res) => {
 async function crawlTrips(dryRun, token) {
   const dir = await fs.promises.opendir('trips');
 
+  const getAlbumResponse = await libraryApiGetAlbums(token);
+  logger.verbose(`get album response: ${JSON.stringify(getAlbumResponse)}`);
+
+  const existingAlbums = getAlbumResponse.albums.map(album => { return { id: album.id, title: album.title } });
+  logger.info(`Existing albums: ${JSON.stringify(existingAlbums)}`);
+
   for await (const dirent of dir) {
     if (dirent.name === ".DS_Store") { continue; }
 
     const album = dirent.name;
-    logger.info(`Creating album: '${album}'`)
-    const albumId = dryRun ? "" : await createAlbum(token, album);
+
+    let albumId = "not-set-yet";
+
+    const existingAlbum = existingAlbums.find(a => a.title === album);
+
+    if (existingAlbum != null) {
+      albumId = existingAlbum.id;
+      logger.info(`${album} already exists with id '${albumId}', not recreating`);
+    } else {
+      logger.info(`Creating album: '${album}'`);
+      albumId = dryRun ? "dry-run-id" : await createAlbum(token, album);
+      logger.info(`Created ${album}, with id: ${albumId}`);
+    }
 
     await crawlSingleTrip(dryRun, token, album, albumId);
   }
