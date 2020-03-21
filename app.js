@@ -336,12 +336,16 @@ async function crawlTrips(dryRun, token) {
 async function crawlSingleTrip(dryRun, token, album, albumId) {
   const albumPath = `trips/${album}`;
   const dir = await fs.promises.opendir(albumPath);
-  const mediaItems = [];
+  const photos = [];
 
   for await (const dirent of dir) {
     if (dirent.name === ".DS_Store") { continue; }
+    photos.push(dirent.name);
+  }
 
-    const photo = dirent.name;
+  photos.sort();
+
+  for (const photo of photos) {
     logger.info(`>>  Uploading into '${album}': ${photo}`)
 
     const mediaItem = {
@@ -351,12 +355,10 @@ async function crawlSingleTrip(dryRun, token, album, albumId) {
       }
     }
 
-    mediaItems.push(mediaItem);
-  }
-
-  logger.info(`> Creating ${mediaItems.length} media item(s) in '${album}'`);
-  if (!dryRun) {
-    const createResponse = await batchCreate(token, mediaItems, albumId);
+    logger.info(`> Creating media item in '${album}': ${photo}`);
+    if (!dryRun) {
+      await batchCreate(token, [mediaItem], albumId);
+    }
   }
 }
 
@@ -591,8 +593,6 @@ async function batchCreate(authToken, mediaItems, albumId) {
   });
 
   logger.verbose(`batchCreate response: ${JSON.stringify(response)}`)
-
-  return response;
 }
 
 async function createAlbum(authToken, albumName) {
