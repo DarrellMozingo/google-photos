@@ -328,11 +328,16 @@ async function crawlTrips(dryRun, token) {
   const existingAlbums = getAlbumResponse.albums.map(album => { return { id: album.id, title: album.title } });
   logger.info(`Existing albums: ${JSON.stringify(existingAlbums)}`);
 
+  const albums = [];
+
   for await (const dirent of dir) {
     if (dirent.name === ".DS_Store") { continue; }
+    albums.push(dirent.name);
+  }
 
-    const album = dirent.name;
+  albums.sort();
 
+  for (const album of albums) {
     let albumId = "not-set-yet";
 
     const existingAlbum = existingAlbums.find(a => a.title === album);
