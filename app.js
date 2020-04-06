@@ -362,7 +362,14 @@ async function crawlSingleTrip(dryRun, token, album, albumId) {
   const photos = [];
 
   for await (const dirent of dir) {
-    if (dirent.name === ".DS_Store" || dirent.name === "_done") { continue; }
+    if (dirent.name === ".DS_Store"
+        || dirent.name === "_done"
+        || dirent.name.startsWith("normal_")
+        || dirent.name.startsWith("thumb_")) { 
+          logger.info(`Skipping file ${dirent.name}`)
+          continue;
+    }
+
     photos.push(dirent.name);
   }
 
